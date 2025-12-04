@@ -23,13 +23,21 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                script {
+                    docker.image('node:18').inside {
+                        sh 'npm install'
+                    }
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'npm test'
+                script {
+                    docker.image('node:18').inside {
+                        sh 'npm test'
+                    }
+                }
             }
         }
 
