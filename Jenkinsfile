@@ -1,7 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "jenkins-test-app"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout([
@@ -15,17 +21,37 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("jenkins-test-image")
+                    dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
             }
         }
 
-        stage('Post-Build Message') {
+        stage('Tag Latest') {
             steps {
-                echo "Docker image built successfully!"
+                script {
+                    sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                }
+            }
+        }
+
+        stage('Post Build Message') {
+            steps {
+                echo "Docker image built successfully: ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
     }
